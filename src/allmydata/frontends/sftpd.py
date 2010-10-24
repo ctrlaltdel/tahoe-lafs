@@ -942,16 +942,16 @@ def _reload():
 
 class SFTPUserHandler(ConchUser, PrefixingLogMixin):
     implements(ISFTPServer)
-    def __init__(self, client, rootnode, username):
+    def __init__(self, client, rootcap, username):
         ConchUser.__init__(self)
         PrefixingLogMixin.__init__(self, facility="tahoe.sftp", prefix=username)
-        if noisy: self.log(".__init__(%r, %r, %r)" % (client, rootnode, username), level=NOISY)
+        if noisy: self.log(".__init__(%r, %r)" % (client, username), level=NOISY)
 
         self.channelLookup["session"] = session.SSHSession
         self.subsystemLookup["sftp"] = FileTransferServer
 
         self._client = client
-        self._root = rootnode
+        self._rootcap = rootcap
         self._username = username
         self._convergence = client.convergence
 
@@ -1820,7 +1820,7 @@ class SFTPUserHandler(ConchUser, PrefixingLogMixin):
             d.addCallback(lambda ign: self._client.create_node_from_uri(path[1].encode('utf-8')))
             d.addCallback(lambda root: (root, path[2:]))
         else:
-            d.addCallback(lambda ign: (self._root, path))
+            d.addCallback(lambda ign: (self._client.create_node_from_uri(self._rootcap), path))
         return d
 
     def _get_parent_or_node(self, path):
@@ -1910,8 +1910,7 @@ class Dispatcher:
 
     def requestAvatar(self, avatarID, mind, interface):
         assert interface == IConchUser, interface
-        rootnode = self._client.create_node_from_uri(avatarID.rootcap)
-        handler = SFTPUserHandler(self._client, rootnode, avatarID.username)
+        handler = SFTPUserHandler(self._client, avatarID.rootcap, avatarID.username)
         return (interface, handler, handler.logout)
 
 

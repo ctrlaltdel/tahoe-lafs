@@ -75,7 +75,7 @@ class Handler(GridTestMixin, ShouldFailMixin, ReallyEqualMixin, unittest.TestCas
             self.root = node
             self.root_uri = node.get_uri()
             sftpd._reload()
-            self.handler = sftpd.SFTPUserHandler(self.client, self.root, self.username)
+            self.handler = sftpd.SFTPUserHandler(self.client, self.root_uri, self.username)
         d.addCallback(_created_root)
         return d
 
